@@ -1,38 +1,35 @@
 {
-  "env": "${env}",
-  "name": "Frontend Test",
-  "service_name": "${service_name}",
-  "synthetics_url": "https://lmp.dev.aws-ue1.happymoney.com:5005/actuator/health",
-  "synthetics_type": "api",
-  "synthetics_subtype": "http",
-  "synthetics_locations": [
-    "aws:us-west-1"
-  ],
-  "synthetics_device_ids": [
-    "laptop_large"
-  ],
-  "synthetics_alert_down_message": "There are some problems on:",
-  "synthetics_alert_up_message": "The problems are gone on:",
-  "api_request_frequency": 60,
-  "api_assertion_type":
-  {"type" : "responseTime",
-  "api_assertion_operator": "lessThan",
-  "api_assertion_target": "3000"},
-  "api_assertion_type":
-  {"type" : "statusCode",
-    "api_assertion_operator": "is",
-    "api_assertion_target": "200"
+  "name": "Test on ${service_name}",
+  "type": "api",
+  "message": "{{#is_alert}} The HappyMoney VPN Page https://happymoneyinc.openvpn.com is down! {{/is_alert}} {{#is_recovery}} The HappyMoney VPN Page is online. {{/is_recovery}} @slack-Happy_Money-monitoring @pagerduty-Datadog",
+  "assertions": [{
+    "operator": "is",
+    "target": "200",
+    "type": "statusCode"
+  }],
+  "locations": ["aws:us-west-2"],
+  "optionsList": {
+    "monitorOptions": {
+      "renotifyInterval": 120
+    },
+    "retry": {
+      "count": 0,
+      "interval": 300
+    },
+    "tickEvery": 60
   },
-  "api_assertion_type":
-  {"type" : "body",
-    "api_assertion_operator": "validatesJSONPath",
-    "targetjsonpath" : {
-      "jsonpath" : "$.components.mongo.status",
-      "operator" : "contains",
-      "targetvalue" : "UP"
-    }
+  "requestDefinition": {
+    "method": "GET",
+    "url": "https://lmp.dev.aws-ue1.happymoney.com:5005/actuator/health"
   },
+  "status": "live",
+  "subtype": "http",
+  "tags": [
+    "check_status:live",
+    "check_type:api",
+    "probe_dc:aws:us-west-2",
+    "probe_dc:aws:us-east-2"
+  ],
+  "priority": "p1"
 
-  "synthetics_status": "live",
-  "notification_targets": "${notification_targets}"
 }
