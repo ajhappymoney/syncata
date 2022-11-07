@@ -336,6 +336,40 @@ locals {
   }
 
   #--------------------------------------------------------------------------------
+  # test
+  catalog_test_files         = [for filename in fileset("${path.module}/monitors/test/", "*.json") : trimsuffix(filename, ".json")]
+  catalog_test_monitors_list = var.test_monitor.enabled == true ? local.catalog_test_files : []
+  catalog_test_list = flatten([
+  for item in local.catalog_test_monitors_list : [
+  for attr_key, attr_val in var.test_monitor.attributes : {
+    key = "${attr_key}/test/${item}"
+    value = jsondecode(templatefile("${path.module}/monitors/test/${item}.json", {
+      env                                    = attr_val.env
+      service_name                           = attr_val.service_name
+      notification_targets                   = lookup(attr_val, "notification_targets", var.notification_targets)
+    }))
+  }
+  ]
+  ])
+  catalog_test = { for item in local.catalog_test_list : item.key => item.value }
+
+  custom_test_list = var.test_monitor.enabled == true && var.test_monitor.custom_monitors != null ? flatten([
+  for key, val in var.test_monitor.custom_monitors : [
+  for attr_key, attr_val in var.test_monitor.attributes :
+  {
+    id         = "${attr_key}/${key}"
+    template   = val
+    attributes = attr_val
+  }
+  ]
+  ]) : []
+  custom_test = {
+  for item in local.custom_test_list : item.id => jsondecode(templatefile(item.template, merge({
+    notification_targets = lookup(item.attributes, "notification_targets", var.notification_targets)
+  }, item.attributes)))
+  }
+
+  #--------------------------------------------------------------------------------
   # spring
   catalog_spring_files         = [for filename in fileset("${path.module}/monitors/spring/", "*.json") : trimsuffix(filename, ".json")]
   catalog_spring_monitors_list = var.spring_monitor.enabled == true ? local.catalog_spring_files : []
@@ -450,7 +484,10 @@ locals {
     local.custom_spring,
 
     local.catalog_service,
-    local.custom_service
+    local.custom_service,
+
+    local.catalog_test,
+    local.custom_test
   )
   monitors = { for key, val in local.monitors_map : key => val if !contains(var.exclude_monitors, key) }
 }

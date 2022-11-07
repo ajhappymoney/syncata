@@ -94,6 +94,13 @@ variable "service_monitor" {
   }
 }
 
+variable "test_monitor" {
+  description = "test"
+  default = {
+    enabled         = false
+    custom_monitors = null
+  }
+}
 
 variable "notification_targets" {
   type    = string

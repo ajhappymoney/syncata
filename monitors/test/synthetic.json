@@ -1,0 +1,38 @@
+{
+  "env": "${env}",
+  "name": "Frontend Test",
+  "service_name": "${service_name}",
+  "synthetics_url": "https://lmp.dev.aws-ue1.happymoney.com:5005/actuator/health",
+  "synthetics_type": "api",
+  "synthetics_subtype": "http",
+  "synthetics_locations": [
+    "aws:us-west-1"
+  ],
+  "synthetics_device_ids": [
+    "laptop_large"
+  ],
+  "synthetics_alert_down_message": "There are some problems on:",
+  "synthetics_alert_up_message": "The problems are gone on:",
+  "api_request_frequency": 60,
+  "api_assertion_type":
+  {"type" : "responseTime",
+  "api_assertion_operator": "lessThan",
+  "api_assertion_target": "3000"},
+  "api_assertion_type":
+  {"type" : "statusCode",
+    "api_assertion_operator": "is",
+    "api_assertion_target": "200"
+  },
+  "api_assertion_type":
+  {"type" : "body",
+    "api_assertion_operator": "validatesJSONPath",
+    "targetjsonpath" : {
+      "jsonpath" : "$.components.mongo.status",
+      "operator" : "contains",
+      "targetvalue" : "UP"
+    }
+  },
+
+  "synthetics_status": "live",
+  "notification_targets": "${notification_targets}"
+}
